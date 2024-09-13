@@ -1,6 +1,9 @@
 # hyperf_cacheable
 后期写成一个 `ConfigProvider` 代码复制到项目里面去，命名空间根据相应改下
 
+# 依赖
+`hyperf/cache`
+
 ### 场景
 适合小表，不这么改变的场景
 
