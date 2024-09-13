@@ -7,7 +7,7 @@
 ## 使用方法
 在你的model里面 引入`CacheableTrait`
 ```
-class LayoutTemplate extends Model
+class UserModel extends Model
 {
     use CacheableTrait;
 }
