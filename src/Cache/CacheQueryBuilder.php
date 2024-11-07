@@ -198,9 +198,9 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
     {
         $this->logger->debug("Insert Insert Id");
         if ($this->cacheGroupByField) {
-            $this->cacheGroupByFieldValue = $values[$this->model->{$this->cacheGroupByField}] ?? null;
+            $this->cacheGroupByFieldValue = $values[$this->cacheGroupByField] ?? null;
             if (!$this->cacheGroupByFieldValue)
-                throw new \Exception('insertGetId 失败，where条件不存在` ' . $this->cacheGroupByField . "`");
+                throw new \Exception('insertGetId 失败，插入数据不存在` ' . $this->cacheGroupByField . "`" );
         }
         $this->flushCache();
         return parent::insertGetId($values, $sequence);
