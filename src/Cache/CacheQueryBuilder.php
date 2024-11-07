@@ -199,8 +199,11 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
         $this->logger->debug("Insert Insert Id");
         if ($this->cacheGroupByField) {
             $this->cacheGroupByFieldValue = $values[$this->cacheGroupByField] ?? null;
-            if (!$this->cacheGroupByFieldValue)
-                throw new \Exception('insertGetId 失败，插入数据不存在` ' . $this->cacheGroupByField . "`" );
+            if (!$this->cacheGroupByFieldValue) {
+                $errMsg = 'insertGetId 失败，插入数据不存在` ' . $this->cacheGroupByField . "`" ;
+                $this->logger->error($errMsg  . var_export($values, true));
+                throw new \Exception($errMsg );
+            }
         }
         $this->flushCache();
         return parent::insertGetId($values, $sequence);
@@ -223,8 +226,10 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
                     }
                 }
             }
-            if (!$this->cacheGroupByFieldValue)
-                throw new \Exception('update 失败，请检查插入是否存在` ' . $this->cacheGroupByField . "`");
+            if (!$this->cacheGroupByFieldValue) {
+                $errMsg = 'update 失败，请检查插入是否存在` ' . $this->cacheGroupByField . "`" . var_export($this->wheres, true) ;
+                throw new \Exception($errMsg);
+            }
         }
         $this->flushCache();
         return parent::update($values);
@@ -283,8 +288,9 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
                     }
                 }
             }
-            if (!$this->cacheGroupByFieldValue)
+            if (!$this->cacheGroupByFieldValue) {
                 throw new \Exception('delete 失败，where条件不存在` ' . $this->cacheGroupByField . "`");
+            }
         }
         $this->flushCache();
         return parent::delete($id);
