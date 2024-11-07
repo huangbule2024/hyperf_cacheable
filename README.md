@@ -5,7 +5,7 @@
 `hyperf/cache`
 
 ### 场景
-适合小表，不这么改变的场景
+适合中小表场景，同时引入 `cacheGroupByField`  字段匹配saas场景
 
 ## 使用方法
 在你的model里面 引入`CacheableTrait`
