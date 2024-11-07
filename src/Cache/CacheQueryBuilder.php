@@ -42,6 +42,12 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
     private $cacheGroupByFieldValue = null;
 
     /**
+     * 是否卡其缓存
+     * @var mixed
+     */
+    private $cacheable = false;
+
+    /**
      * Create a new query builder instance.
      */
     public function __construct(
@@ -53,6 +59,7 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
        parent::__construct($connection, $grammar, $processor);
        $this->model = $model;
        $this->cacheGroupByField = $this->model->cacheGroupByField;
+       $this->cacheable = $this->config->get('cacheable.enabled');
     }
 
     /**
@@ -63,7 +70,7 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
     protected function runSelect()
     {
         //1. 判断是否开启缓存
-        if (!$this->config->get('cacheable.enabled')) {
+        if (!$this->cacheable) {
             return parent::runSelect();
         }
         //2. 排除like语句
@@ -113,7 +120,7 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
         if ($cacheGroupByFieldValue) {
             $this->cacheGroupByFieldValue = $cacheGroupByFieldValue;
         }
-        if (!$this->config->get('cacheable.enabled')) {
+        if (!$this->cacheable) {
             return;
         }
         if ($this->cacheGroupByFieldValue) {
@@ -189,12 +196,13 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
      */
     public function insertGetId(array $values, $sequence = null)
     {
-        foreach ($values as $where) {
-            if ($where['column'] == $this->cacheGroupByField && $where['operator'] == '=') {
-                $this->cacheGroupByFieldValue = $where['value'];
-                break;
-            }
+        $this->logger->debug("Insert Insert Id");
+        if ($this->cacheGroupByField) {
+            $this->cacheGroupByFieldValue = $values[$this->model->{$this->cacheGroupByField}] ?? null;
+            if (!$this->cacheGroupByFieldValue)
+                throw new \Exception('insertGetId 失败，where条件不存在` ' . $this->cacheGroupByField . "`");
         }
+        $this->flushCache();
         return parent::insertGetId($values, $sequence);
     }
 
@@ -204,6 +212,7 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
      */
     public function update(array $values)
     {
+        $this->logger->debug('update');
         if ($this->cacheGroupByField) {
             $this->cacheGroupByFieldValue = $this->model->{$this->cacheGroupByField};
             if (!$this->cacheGroupByFieldValue) {
@@ -215,7 +224,7 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
                 }
             }
             if (!$this->cacheGroupByFieldValue)
-                throw new \Exception('update 失败，where条件不存在` ' . $this->cacheGroupByField . "`");
+                throw new \Exception('update 失败，请检查插入是否存在` ' . $this->cacheGroupByField . "`");
         }
         $this->flushCache();
         return parent::update($values);
@@ -227,6 +236,7 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
      */
     public function insert(array $values)
     {
+        $this->logger->debug('insert');
         if ($this->cacheGroupByField) {
             $arrFlushed = [];
             if (count($values) != count($values, 1)) {
@@ -262,6 +272,7 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
      */
     public function delete($id = null)
     {
+        $this->logger->debug('delete');
         if ($this->cacheGroupByField) {
             $this->cacheGroupByFieldValue = $this->model->{$this->cacheGroupByField};
             if (!$this->cacheGroupByFieldValue) {
@@ -324,5 +335,18 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
         $this->flushCache();
         parent::truncate();
     }
+
+
+    /**
+     * 可以对外使用，手动开启关闭
+     * @param $enabled
+     * @return void
+     */
+    public function cache($enabled = true)
+    {
+        $this->cacheable = $enabled;
+    }
+
+
 }
 
