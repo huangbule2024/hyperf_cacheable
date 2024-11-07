@@ -13,6 +13,8 @@
 class UserModel extends Model
 {
     use CacheableTrait;
+
+    public $cacheGroupByField = "companyId"
 }
 
 ```
