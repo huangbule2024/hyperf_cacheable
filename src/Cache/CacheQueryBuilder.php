@@ -56,10 +56,10 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
         ?Processor $processor = null,
         \Hyperf\DbConnection\Model\Model $model = null
     ) {
-       parent::__construct($connection, $grammar, $processor);
-       $this->model = $model;
-       $this->cacheGroupByField = $this->model->cacheGroupByField;
-       $this->cacheable = $this->config->get('cacheable.enabled');
+        parent::__construct($connection, $grammar, $processor);
+        $this->model = $model;
+        $this->cacheGroupByField = $this->model->cacheGroupByField;
+        $this->cacheable = $this->config->get('cacheable.enabled');
     }
 
     /**
@@ -83,7 +83,7 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
             $this->cacheGroupByFieldValue = null;
             //只支持简单的单个查询
             foreach ($this->wheres as $where) {
-                if ($where['column'] == $this->cacheGroupByField && $where['operator'] == '=') {
+                if (isset($where['column']) && $where['column'] == $this->cacheGroupByField && $where['operator'] == '=') {
                     $this->cacheGroupByFieldValue = $where['value'];
                     break;
                 }
@@ -220,7 +220,7 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
             $this->cacheGroupByFieldValue = $this->model->{$this->cacheGroupByField};
             if (!$this->cacheGroupByFieldValue) {
                 foreach ($this->wheres as $where) {
-                    if ($where['column'] == $this->cacheGroupByField && $where['operator'] == '=') {
+                    if (isset($where['column']) && $where['column'] == $this->cacheGroupByField && $where['operator'] == '=') {
                         $this->cacheGroupByFieldValue = $where['value'];
                         break;
                     }
@@ -282,7 +282,7 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
             $this->cacheGroupByFieldValue = $this->model->{$this->cacheGroupByField};
             if (!$this->cacheGroupByFieldValue) {
                 foreach ($this->wheres as $where) {
-                    if ($where['column'] == $this->cacheGroupByField && $where['operator'] == '=') {
+                    if (isset($where['column']) && $where['column'] == $this->cacheGroupByField && $where['operator'] == '=') {
                         $this->cacheGroupByFieldValue = $where['value'];
                         break;
                     }
@@ -352,7 +352,5 @@ class CacheQueryBuilder extends \Hyperf\Database\Query\Builder{
     {
         $this->cacheable = $enabled;
     }
-
-
 }
 
